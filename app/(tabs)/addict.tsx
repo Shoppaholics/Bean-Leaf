@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 // Tab to view user's past reviewed locations
 const Addict = () => {
+  const [showMap, setShowMap] = useState(false);
   const [userId, setUserId] = useState("");
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
 

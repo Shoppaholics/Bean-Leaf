@@ -27,14 +27,23 @@ export async function saveLocation(
   userId: string,
   locationName: string,
   description: string,
+  drinkType: string,
+  rating: number,
   latitude: number,
   longitude: number
 ) {
   try {
-    // Insert the task into the "tasks" table
-    const { data, error } = await supabase
-      .from("my_locations")
-      .insert([{ user_id: userId, locationName, description }]);
+    const { data, error } = await supabase.from("my_locations").insert([
+      {
+        user_id: userId,
+        location_name: locationName,
+        description: description,
+        drink_type: drinkType,
+        rating: rating,
+        location_latitude: latitude,
+        location_longitude: longitude,
+      },
+    ]);
 
     return { success: true, data };
   } catch (error) {
