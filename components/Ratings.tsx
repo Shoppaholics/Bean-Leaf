@@ -1,6 +1,3 @@
-const RC4_LAT = 1.30842;
-const RC4_LONG = 103.7735;
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -42,8 +39,7 @@ const Ratings = () => {
     }
 
     const location = await Location.getCurrentPositionAsync({});
-    const longitude = RC4_LONG;
-    const latitude = RC4_LAT;
+    const { latitude, longitude } = location.coords;
     setCurrentLocation({ latitude, longitude });
 
     // Animate map to current location
@@ -78,8 +74,8 @@ const Ratings = () => {
 
     const newPin: Pin = {
       id: Date.now(),
-      latitude: RC4_LAT,
-      longitude: RC4_LONG,
+      latitude: currentLocation!.latitude,
+      longitude: currentLocation!.longitude,
       rating,
       drinkType,
     };
@@ -124,8 +120,8 @@ const Ratings = () => {
         ref={(ref) => setMapRef(ref)}
         style={styles.map}
         initialRegion={{
-          latitude: RC4_LAT,
-          longitude: RC4_LONG,
+          latitude: 1.3521,
+          longitude: 103.8198,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
@@ -183,7 +179,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: "absolute",
-    bottom: 20,
+    top: 75,
     left: 20,
     right: 20,
     backgroundColor: "white",
