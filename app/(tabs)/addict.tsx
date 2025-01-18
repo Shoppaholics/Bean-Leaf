@@ -86,7 +86,7 @@ const Addict = () => {
 
   const submitRating = async () => {
     if (!currentLocation) return;
-    if (!ratingInput || !drinkType || !locationName || !description) {
+    if (!ratingInput || !drinkType || !locationName) {
       Alert.alert("Error", "Please enter both drink type and rating.");
       return;
     }
@@ -95,6 +95,8 @@ const Addict = () => {
       Alert.alert("Error", "User not authenticated");
       return;
     }
+
+    const finalDescription = description || "No description provided";
 
     const rating = parseFloat(ratingInput);
     if (isNaN(rating) || rating < 1 || rating > 5) {
@@ -113,7 +115,7 @@ const Addict = () => {
     await saveLocation(
       userId,
       locationName,
-      description,
+      finalDescription,
       drinkType,
       parseInt(ratingInput),
       currentLocation.latitude,
@@ -134,6 +136,7 @@ const Addict = () => {
     setShowRatingInputs(false);
     setRatingInput("");
     setDrinkType("");
+    setDescription("");
     Alert.alert("Success", `You rated ${drinkType} with ${rating} stars!`);
   };
 
@@ -196,12 +199,13 @@ const Addict = () => {
           />
         ))}
       </MapView>
-
-      <View style={styles.inputContainer}>
+      <View style={styles.logoContainer}>
         <TouchableOpacity onPress={startRating}>
           <Image source={icon} style={{ width: 20, height: 20 }} />
         </TouchableOpacity>
-        {showRatingInputs && (
+      </View>
+      {showRatingInputs && (
+        <View style={styles.inputContainer}>
           <View>
             <Text>Drink Type:</Text>
             <TextInput
@@ -218,14 +222,16 @@ const Addict = () => {
               keyboardType="numeric"
               style={styles.input}
             />
+            <Text>Location:</Text>
             <TextInput
               placeholder="Enter location name"
               value={locationName}
               onChangeText={setLocationName}
               style={styles.input}
             />
+            <Text>Description</Text>
             <TextInput
-              placeholder="Enter description"
+              placeholder="Enter description (Optional)"
               value={description}
               onChangeText={setDescription}
               style={styles.input}
@@ -233,8 +239,8 @@ const Addict = () => {
 
             <Button title="Submit" onPress={submitRating} />
           </View>
-        )}
-      </View>
+        </View>
+      )}
       <Button title="List view" onPress={() => setShowListView(true)} />
       {showListView && (
         <SavedLocations
@@ -259,7 +265,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: "absolute",
-    top: 75,
+    top: 130,
     left: 20,
     right: 20,
     backgroundColor: "white",
@@ -269,8 +275,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    zIndex: 1,
+  },
+  logoContainer: {
+    position: "absolute",
+    top: 75,
+    left: 20,
+    right: 20,
+    backgroundColor: "white",
+    padding: 15,
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     elevation: 5,
     zIndex: 1,
+    width: 50,
   },
   input: {
     backgroundColor: "#f0f0f0",
