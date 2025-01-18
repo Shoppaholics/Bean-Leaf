@@ -1,11 +1,11 @@
-import MapTilerMap from "../../components/MapTiler";
+import Ratings from "@/components/Ratings";
 import { View, Text } from "react-native";
 
 const Map = () => {
   return (
     <View>
       <Text>map</Text>
-        <MapTilerMap />    
+        <Ratings />
       </View>
   );
 };
