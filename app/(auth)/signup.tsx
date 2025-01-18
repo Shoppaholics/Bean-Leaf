@@ -17,15 +17,38 @@ export default function SignUpScreen() {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (error) throw error;
+      if (user) {
+        // First create the profile
+        const { error: profileError } = await supabase.from("profiles").insert([
+          {
+            id: user.id,
+            email: user.email,
+            full_name: "", // Will be updated in newProfile
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ]);
 
-      // Signup successful - you might want to show a verification message
-      router.replace("/(tabs)");
+        if (profileError) throw profileError;
+
+        // Then navigate to complete profile
+        router.replace({
+          pathname: "/(auth)/newProfile",
+          params: {
+            id: user.id,
+            email: user.email,
+          },
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
