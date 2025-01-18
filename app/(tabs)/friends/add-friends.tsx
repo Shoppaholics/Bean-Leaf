@@ -1,179 +1,224 @@
 import React, { useState } from "react";
 import {
   View,
-  Text,
   TextInput,
-  Button,
-  FlatList,
   StyleSheet,
   Alert,
-  ImageBackground,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import { searchUsers, sendFriendRequest } from "../../(api)/userServices"; // Replace with the correct path to your API functions
+import { searchUsers, sendFriendRequest } from "../../(api)/userServices";
 import { useFocusEffect } from "@react-navigation/native";
+import { ThemedText } from "@/components/ThemedText";
 
 const AddFriendsScreen = () => {
   const [searchString, setSearchString] = useState<string>("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [searchClicked, setSearchClicked] = useState(false); // Track if search button was clicked
-  const [refreshKey, setRefreshKey] = useState(0); // This will force a re-render when updated
-  const [error, setError] = useState<string | null>(null); // Error state for handling error messages
+  const [searchClicked, setSearchClicked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // This effect runs every time the screen is focused (brought back into view)
   useFocusEffect(
     React.useCallback(() => {
-      setRefreshKey((prevKey) => prevKey + 1);
-
-      // Cleanup (optional) when the screen is unfocused
       return () => {
         setResults([]);
         setSearchString("");
         setLoading(false);
         setSearchClicked(false);
         setError(null);
-
-        console.log("Screen unfocused.");
       };
     }, [])
   );
 
   const handleSearch = async () => {
-    setSearchClicked(true); // Set this to true when search is clicked
+    setSearchClicked(true);
     setLoading(true);
-    setError(null); // Reset error state
+    setError(null);
 
-    // Check if search string is empty
     if (!searchString.trim()) {
-      setLoading(false); // Stop loading indicator
-      setError("Search string cannot be empty"); // Set error message
+      setLoading(false);
+      setError("Please enter an email to search");
       return;
     }
 
     try {
       const data = await searchUsers(searchString);
-      if (error) {
-        throw error;
-      }
       setResults(data);
     } catch (error) {
       const err = error as Error;
-      Alert.alert("Error", err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddFriend = async (userId: string) => {
-    try {
-      await sendFriendRequest(userId);
-    } catch (error) {
-      const err = error as Error;
-      Alert.alert("Error", err.message);
-    }
-  };
-
   return (
     <View style={styles.container}>
-      {/* <ImageBackground
-        source={require('@/assets/images/coffee-and-tea.png')}
-        style={styles.background}
-        imageStyle={{ opacity: 0.5 }}
-        > */}
-      <Text style={styles.title}>Add Friends</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Search by email"
-        value={searchString}
-        onChangeText={setSearchString}
-      />
-      <Button title="Search" onPress={handleSearch} disabled={loading} />
+      <ThemedText type="title" style={styles.title}>
+        Find Friends
+      </ThemedText>
 
-      {loading && <Text>Loading...</Text>}
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by email"
+          value={searchString}
+          onChangeText={setSearchString}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          returnKeyType="search"
+          onSubmitEditing={handleSearch}
+        />
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={handleSearch}
+          disabled={loading}
+        >
+          <ThemedText style={styles.searchButtonText}>
+            {loading ? <ActivityIndicator color="white" /> : "Search"}
+          </ThemedText>
+        </TouchableOpacity>
+      </View>
+
+      {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
 
       {searchClicked && results.length === 0 && !loading && (
-        <Text style={styles.noResultsText}>User not found</Text>
+        <View style={styles.messageContainer}>
+          <ThemedText style={styles.messageText}>
+            {searchString.trim() === ""
+              ? "Please enter an email to search"
+              : "No available users found with that email. They might be already your friend or have a pending request."}
+          </ThemedText>
+        </View>
       )}
 
-      {searchClicked && results.length > 0 && !loading && (
-        <FlatList
-          data={results}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.resultItem}>
-              <Text style={styles.resultText}>{item.email}</Text>
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => handleAddFriend(item.id)}
-              >
-                <Text style={styles.addButtonText}>Add</Text>
-              </TouchableOpacity>
+      {results.length > 0 && (
+        <View style={styles.resultsContainer}>
+          {results.map((item) => (
+            <View key={item.id} style={styles.resultCard}>
+              <View style={styles.userInfo}>
+                <ThemedText style={styles.emailText}>{item.email}</ThemedText>
+              </View>
+              {item.status === "PENDING" ? (
+                <View style={styles.pendingBadge}>
+                  <ThemedText style={styles.pendingText}>Pending</ThemedText>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => sendFriendRequest(item.id)}
+                >
+                  <ThemedText style={styles.addButtonText}>Add</ThemedText>
+                </TouchableOpacity>
+              )}
             </View>
-          )}
-        />
+          ))}
+        </View>
       )}
-      {/* </ImageBackground> */}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    resizeMode: "contain",
-  },
   container: {
     flex: 1,
     padding: 20,
-    paddingTop: 80, // Increased padding at the top
+    paddingTop: 20,
   },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
-  input: {
-    borderColor: "#ccc",
-    borderWidth: 1,
-    padding: 10,
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 24,
+    textAlign: "center",
+  },
+  searchContainer: {
+    flexDirection: "row",
     marginBottom: 20,
-    borderRadius: 5,
+    gap: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 16,
+    fontSize: 16,
+  },
+  searchButton: {
+    backgroundColor: "#0284c7",
+    height: 50,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  searchButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  resultsContainer: {
+    gap: 12,
+  },
+  resultCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "white",
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  emailText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1f2937",
   },
   addButton: {
-    backgroundColor: "#40E0D0", // Turquoise color for the button
-    paddingHorizontal: 15, // Horizontal padding
-    paddingVertical: 10, // Vertical padding
-    borderRadius: 5, // Rounded corners for the button
+    backgroundColor: "#22c55e",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
-  resultItem: {
-    flexDirection: "row",
-    alignItems: "center", // Aligns items vertically centered
-    justifyContent: "space-between",
-    marginBottom: 15, // Space between each result
-    marginTop: 15,
-    padding: 15, // Padding inside each item
-    backgroundColor: "#f9f9f9", // Light background for each item
-    borderRadius: 10, // Rounded corners
-    shadowColor: "#000", // Shadow color for elevation
-    shadowOffset: { width: 0, height: 2 }, // Shadow offset
-    shadowOpacity: 0.2, // Shadow opacity
-    shadowRadius: 5, // Shadow blur radius
-    elevation: 3, // Elevation for Android shadow effect
-  },
-  resultText: {
-    fontSize: 16, // A bit larger text for better readability
-    fontWeight: "500", // Semi-bold text for emphasis
-    color: "#333", // Dark text color for better contrast
-  },
-  noResultsText: {
-    fontSize: 16,
-    color: "gray",
-    textAlign: "center",
-    marginTop: 10,
-  },
-  errorText: { color: "red", marginTop: 10 },
   addButtonText: {
     color: "white",
-    fontWeight: "bold",
+    fontWeight: "600",
     fontSize: 14,
+  },
+  errorText: {
+    color: "#ef4444",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  messageContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  messageText: {
+    fontSize: 16,
+    color: "#6b7280",
+    textAlign: "center",
+  },
+  pendingBadge: {
+    backgroundColor: "#9ca3af",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: "center",
+  },
+  pendingText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "500",
   },
 });
 
