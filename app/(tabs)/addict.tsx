@@ -13,9 +13,10 @@ import {
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { saveLocation } from "@/utils/locations";
+import { getSavedLocations, saveLocation } from "@/utils/locations";
 import { getUserId } from "@/utils/authentication";
 import icon from "../../assets/images/star.png";
+import SavedLocations from "@/components/my-locations/SavedLocations";
 
 type Pin = {
   id: number;
@@ -33,7 +34,7 @@ const Addict = () => {
     longitude: number;
   } | null>(null);
   const [pins, setPins] = useState<Pin[]>([]);
-  const [showMap, setShowMap] = useState(true);
+  const [showListView, setShowListView] = useState(true);
   const [mapRef, setMapRef] = useState<MapView | null>(null);
 
   // review input fields
@@ -43,7 +44,7 @@ const Addict = () => {
   const [locationName, setLocationName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
 
-  const [savedLocations, setSavedLocations] = useState<Location[]>([]);
+  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
 
   const fetchCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -65,11 +66,14 @@ const Addict = () => {
     });
   };
 
-  const fetchUserId = async () => {
+  const fetchSavedLocations = async () => {
     const userId = await getUserId();
-    if (userId) {
-      setUserId(userId);
+    if (!userId) {
+      return;
     }
+    setUserId(userId);
+    const savedLocations = await getSavedLocations(userId);
+    setSavedLocations(savedLocations);
   };
 
   const startRating = () => {
@@ -82,7 +86,7 @@ const Addict = () => {
 
   const submitRating = async () => {
     if (!currentLocation) return;
-    if (!ratingInput || !drinkType || !locationName ) {
+    if (!ratingInput || !drinkType || !locationName) {
       Alert.alert("Error", "Please enter both drink type and rating.");
       return;
     }
@@ -137,7 +141,7 @@ const Addict = () => {
   };
 
   useEffect(() => {
-    fetchUserId();
+    fetchSavedLocations();
     fetchCurrentLocation();
   }, []);
 
@@ -154,10 +158,25 @@ const Addict = () => {
     }
   }, [currentLocation]);
 
-  return showMap ? (
+  const focusMapOnLocation = (latitude: number, longitude: number) => {
+    setShowListView(false);
+    setCurrentLocation({ latitude: latitude, longitude: longitude });
+    // Animate map to current location
+
+    // mapRef?.animateToRegion({
+    //   latitude: 1.3084797418064136,
+    //   longitude: 103.77293754515168,
+    //   latitudeDelta: 0.01,
+    //   longitudeDelta: 0.01,
+    // });
+  };
+
+  return (
     <SafeAreaView edges={["right", "bottom", "left"]} style={styles.container}>
       <MapView
-        ref={(ref) => setMapRef(ref)}
+        ref={(ref) => {
+          setMapRef(ref);
+        }}
         style={styles.map}
         initialRegion={{
           latitude: 1.3521,
@@ -181,7 +200,7 @@ const Addict = () => {
         ))}
       </MapView>
       <View style={styles.logoContainer}>
-      <TouchableOpacity onPress={startRating}>
+        <TouchableOpacity onPress={startRating}>
           <Image source={icon} style={{ width: 20, height: 20 }} />
         </TouchableOpacity>
       </View>
@@ -221,11 +240,16 @@ const Addict = () => {
             <Button title="Submit" onPress={submitRating} />
           </View>
         </View>
-        )}
-    </SafeAreaView>
-  ) : (
-    <SafeAreaView>
-      <Text>Saved</Text>
+      )}
+      <Button title="List view" onPress={() => setShowListView(true)} />
+      {showListView && (
+        <SavedLocations
+          isVisible={showListView}
+          setIsVisible={setShowListView}
+          savedLocations={savedLocations}
+          onPress={focusMapOnLocation}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -253,21 +277,21 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     zIndex: 1,
   },
-logoContainer: {
-  position: "absolute",
-  top: 75,
-  left: 20,
-  right: 20,
-  backgroundColor: "white",
-  padding: 15,
-  borderRadius: 30,
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.25,
-  shadowRadius: 3.84,
-  elevation: 5,
-  zIndex: 1,
-  width: 50,
+  logoContainer: {
+    position: "absolute",
+    top: 75,
+    left: 20,
+    right: 20,
+    backgroundColor: "white",
+    padding: 15,
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 1,
+    width: 50,
   },
   input: {
     backgroundColor: "#f0f0f0",
