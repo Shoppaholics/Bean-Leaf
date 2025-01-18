@@ -15,6 +15,14 @@ export default function AuthLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="newProfile"
+        options={{
+          headerShown: false,
+          // Prevent going back to signup
+          gestureEnabled: false,
+        }}
+      />
     </Stack>
   );
 }
