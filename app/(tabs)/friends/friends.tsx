@@ -8,7 +8,11 @@ import {
   TouchableOpacity,
   Button,
 } from "react-native";
-import { fetchFriends } from "../../(api)/userServices"; // Replace with the correct path
+import {
+  fetchFriends,
+  deleteFriendRequest,
+  deleteFriendship,
+} from "../../(api)/userServices"; // Replace with the correct path
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
@@ -43,6 +47,56 @@ const FriendsScreen = () => {
     } catch (error) {
       Alert.alert("Error", "Failed to accept request");
     }
+  };
+
+  const handleDeleteRequest = async (requestId: string) => {
+    Alert.alert(
+      "Delete Request",
+      "Are you sure you want to delete this friend request?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteFriendRequest(requestId);
+              loadFriends();
+            } catch (error) {
+              Alert.alert("Error", "Failed to delete request");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteFriend = async (friendId: string) => {
+    Alert.alert(
+      "Remove Friend",
+      "Are you sure you want to remove this friend?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteFriendship(friendId);
+              loadFriends();
+            } catch (error) {
+              Alert.alert("Error", "Failed to remove friend");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const loadFriends = async () => {
@@ -84,13 +138,26 @@ const FriendsScreen = () => {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.requestItem}>
-                <Text style={styles.friendText}>{item.sender.email}</Text>
-                <TouchableOpacity
-                  style={styles.acceptButton}
-                  onPress={() => handleAcceptRequest(item.id)}
-                >
-                  <Text style={styles.acceptButtonText}>Accept</Text>
-                </TouchableOpacity>
+                <View style={styles.userInfo}>
+                  <Text style={styles.emailText}>{item.sender.email}</Text>
+                  <Text style={styles.requestText}>
+                    wants to be your friend
+                  </Text>
+                </View>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.acceptButton}
+                    onPress={() => handleAcceptRequest(item.id)}
+                  >
+                    <Text style={styles.buttonText}>✓</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteRequest(item.id)}
+                  >
+                    <Text style={styles.buttonText}>×</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           />
@@ -112,6 +179,12 @@ const FriendsScreen = () => {
                     ? item.receiver.email
                     : item.sender.email}
                 </Text>
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => handleDeleteFriend(item.id)}
+                >
+                  <Text style={styles.removeButtonText}>×</Text>
+                </TouchableOpacity>
               </View>
             )}
           />
@@ -142,10 +215,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   friendItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 15,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   friendText: {
     fontSize: 16,
@@ -170,30 +251,81 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    marginBottom: 10,
+    color: "#374151",
+    marginBottom: 12,
   },
   requestItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 15,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderRadius: 12,
     marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  userInfo: {
+    flex: 1,
+    marginRight: 10,
+  },
+  emailText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1f2937",
+  },
+  requestText: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginTop: 2,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 8,
   },
   acceptButton: {
-    backgroundColor: "#4CAF50",
-    padding: 8,
-    borderRadius: 5,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#22c55e",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  acceptButtonText: {
+  deleteButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#ef4444",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonText: {
     color: "white",
+    fontSize: 18,
     fontWeight: "bold",
+  },
+  removeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#ef4444",
+    justifyContent: "center",
+    alignItems: "center",
+    opacity: 0.9,
+  },
+  removeButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    lineHeight: 20,
   },
 });
 

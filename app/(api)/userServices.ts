@@ -2,13 +2,54 @@ import { supabase } from "@/lib/supabase";
 
 // Function to search users by email
 export const searchUsers = async (email: string) => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email")
-    .ilike("email", `%${email}%`); // Case-insensitive email search
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError) throw authError;
+    if (!user) throw new Error("Not authenticated");
 
-  if (error) throw error;
-  return data;
+    // Get users matching the search
+    const { data: searchResults, error: searchError } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .ilike("email", `%${email}%`)
+      .neq("id", user.id);
+
+    if (searchError) throw searchError;
+    if (!searchResults) return [];
+
+    // Get friend requests status
+    const { data: friendRequests, error: friendError } = await supabase
+      .from("friend_requests")
+      .select("*")
+      .or(
+        `and(from_user_id.eq.${user.id},to_user_id.in.(${searchResults.map((r) => r.id).join(",")})),` +
+          `and(to_user_id.eq.${user.id},from_user_id.in.(${searchResults.map((r) => r.id).join(",")}))`
+      );
+
+    if (friendError) throw friendError;
+
+    // Add status to search results
+    const resultsWithStatus = searchResults.map((result) => {
+      const request = friendRequests?.find(
+        (req) =>
+          (req.from_user_id === result.id && req.to_user_id === user.id) ||
+          (req.to_user_id === result.id && req.from_user_id === user.id)
+      );
+      return {
+        ...result,
+        status: request?.status || null,
+        requestType: request?.from_user_id === user.id ? "sent" : "received",
+      };
+    });
+
+    return resultsWithStatus;
+  } catch (error) {
+    console.error("Search error:", error);
+    throw error;
+  }
 };
 
 export const fetchFriends = async () => {
@@ -103,4 +144,22 @@ export const sendFriendRequest = async (toUserId: string) => {
   } catch (error: any) {
     alert(`Error: ${error.message}`);
   }
+};
+
+export const deleteFriendRequest = async (requestId: string) => {
+  const { error } = await supabase
+    .from("friend_requests")
+    .delete()
+    .eq("id", requestId);
+
+  if (error) throw error;
+};
+
+export const deleteFriendship = async (friendId: string) => {
+  const { error } = await supabase
+    .from("friend_requests")
+    .delete()
+    .eq("id", friendId);
+
+  if (error) throw error;
 };
