@@ -1,14 +1,52 @@
-import { Image, StyleSheet, Platform, TouchableOpacity } from "react-native";
-import { router } from "expo-router";
-import { supabase } from "@/lib/supabase";
-
-import { HelloWave } from "@/components/HelloWave";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import React from "react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 
-export default function HomeScreen() {
+type Location = {
+  id: string;
+  location_name: string;
+  description: string;
+  rating: number;
+  drink_type: string;
+};
+
+export default function Explore() {
+  const router = useRouter();
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchLocations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("my_locations")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setLocations(data || []);
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+    }
+  };
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchLocations().finally(() => setRefreshing(false));
+  }, []);
+
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -16,93 +54,122 @@ export default function HomeScreen() {
       router.replace("/(auth)/login");
     } catch (error) {
       console.error("Error logging out:", error);
-      alert("Error logging out");
     }
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
-      }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <ThemedText type="title" style={styles.title}>
+          Bean & Leaf
+        </ThemedText>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => router.push("/profile")}
+        >
+          <IconSymbol name="person.circle" color="white" />
+        </TouchableOpacity>
+      </View>
 
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <ThemedText style={styles.logoutText}>Logout</ThemedText>
-      </TouchableOpacity>
-
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          to see changes. Press{" "}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: "cmd + d",
-              android: "cmd + m",
-              web: "F12",
-            })}
-          </ThemedText>{" "}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this
-          starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{" "}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText>{" "}
-          to get a fresh <ThemedText type="defaultSemiBold">app</ThemedText>{" "}
-          directory. This will move the current{" "}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{" "}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {locations.map((location) => (
+          <View key={location.id} style={styles.card}>
+            <View style={styles.cardHeader}>
+              <ThemedText style={styles.locationName}>
+                {location.location_name}
+              </ThemedText>
+              <View style={styles.ratingContainer}>
+                <ThemedText style={styles.rating}>
+                  ★ {location.rating}
+                </ThemedText>
+                <ThemedText style={styles.drinkType}>
+                  {location.drink_type}
+                </ThemedText>
+              </View>
+            </View>
+            <ThemedText style={styles.description}>
+              {location.description}
+            </ThemedText>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
   },
-  stepContainer: {
-    gap: 8,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    paddingTop: 60,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  profileButton: {
+    backgroundColor: "#0284c7",
+    padding: 8,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scrollView: {
+    flex: 1,
+    padding: 16,
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
+  locationName: {
+    fontSize: 18,
+    fontWeight: "600",
+    flex: 1,
   },
-  logoutButton: {
-    backgroundColor: "#ef4444",
-    padding: 12,
-    borderRadius: 6,
-    marginVertical: 20,
-    alignItems: "center",
+  ratingContainer: {
+    alignItems: "flex-end",
   },
-  logoutText: {
-    color: "white",
-    fontWeight: "bold",
+  rating: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#f59e0b",
+  },
+  drinkType: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginTop: 4,
+  },
+  description: {
+    fontSize: 14,
+    color: "#4b5563",
+    lineHeight: 20,
   },
 });
