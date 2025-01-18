@@ -1,6 +1,3 @@
-const RC4_LAT = 1.30842;
-const RC4_LONG = 103.7735;
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -14,6 +11,8 @@ import {
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { saveLocation } from "@/utils/locations";
+import { getUserId } from "@/utils/authentication";
 
 type Pin = {
   id: number;
@@ -24,6 +23,8 @@ type Pin = {
 };
 
 const Ratings = () => {
+  const [userId, setUserId] = useState("");
+
   const [currentLocation, setCurrentLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -32,6 +33,9 @@ const Ratings = () => {
   const [showRatingInputs, setShowRatingInputs] = useState<boolean>(false);
   const [ratingInput, setRatingInput] = useState<string>("");
   const [drinkType, setDrinkType] = useState<string>("");
+  const [locationName, setLocationName] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+
   const [mapRef, setMapRef] = useState<MapView | null>(null);
 
   const fetchCurrentLocation = async () => {
@@ -42,8 +46,7 @@ const Ratings = () => {
     }
 
     const location = await Location.getCurrentPositionAsync({});
-    const longitude = RC4_LONG;
-    const latitude = RC4_LAT;
+    const { latitude, longitude } = location.coords;
     setCurrentLocation({ latitude, longitude });
 
     // Animate map to current location
@@ -55,6 +58,13 @@ const Ratings = () => {
     });
   };
 
+  const fetchUserId = async () => {
+    const userId = await getUserId();
+    if (userId) {
+      setUserId(userId);
+    }
+  };
+
   const startRating = () => {
     if (!currentLocation) {
       Alert.alert("Error", "Location not available.");
@@ -63,10 +73,15 @@ const Ratings = () => {
     setShowRatingInputs(true);
   };
 
-  const submitRating = () => {
+  const submitRating = async () => {
     if (!currentLocation) return;
-    if (!ratingInput || !drinkType) {
+    if (!ratingInput || !drinkType || !locationName || !description) {
       Alert.alert("Error", "Please enter both drink type and rating.");
+      return;
+    }
+
+    if (!userId) {
+      Alert.alert("Error", "User not authenticated");
       return;
     }
 
@@ -78,12 +93,21 @@ const Ratings = () => {
 
     const newPin: Pin = {
       id: Date.now(),
-      latitude: RC4_LAT,
-      longitude: RC4_LONG,
+      latitude: currentLocation!.latitude,
+      longitude: currentLocation!.longitude,
       rating,
       drinkType,
     };
 
+    await saveLocation(
+      userId,
+      locationName,
+      description,
+      drinkType,
+      parseInt(ratingInput),
+      currentLocation.latitude,
+      currentLocation.longitude
+    );
     setPins((prevPins) => [...prevPins, newPin]);
 
     // Center map on new pin
@@ -102,6 +126,7 @@ const Ratings = () => {
   };
 
   useEffect(() => {
+    fetchUserId();
     fetchCurrentLocation();
   }, []);
 
@@ -124,8 +149,8 @@ const Ratings = () => {
         ref={(ref) => setMapRef(ref)}
         style={styles.map}
         initialRegion={{
-          latitude: RC4_LAT,
-          longitude: RC4_LONG,
+          latitude: 1.3521,
+          longitude: 103.8198,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
@@ -164,6 +189,19 @@ const Ratings = () => {
               keyboardType="numeric"
               style={styles.input}
             />
+            <TextInput
+              placeholder="Enter location name"
+              value={locationName}
+              onChangeText={setLocationName}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Enter description"
+              value={description}
+              onChangeText={setDescription}
+              style={styles.input}
+            />
+
             <Button title="Submit" onPress={submitRating} />
           </View>
         )}
@@ -183,7 +221,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: "absolute",
-    bottom: 20,
+    top: 75,
     left: 20,
     right: 20,
     backgroundColor: "white",
