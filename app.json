@@ -10,14 +10,22 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.shoppaholics.beannleaf"
+      "bundleIdentifier": "com.shoppaholics.beannleaf",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to drop pins and rate drinks.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need your location for map features, even in the background."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.shoppaholics.beannleaf"
+      "package": "com.shoppaholics.beannleaf",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
