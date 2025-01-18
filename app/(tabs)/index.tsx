@@ -9,6 +9,7 @@ import {
 import { ThemedText } from "@/components/ThemedText";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 
 type Location = {
   id: string;
@@ -62,8 +63,11 @@ export default function Explore() {
         <ThemedText type="title" style={styles.title}>
           Bean & Leaf
         </ThemedText>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <ThemedText style={styles.logoutText}>Logout</ThemedText>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => router.push("/profile")}
+        >
+          <IconSymbol name="person.circle" color="white" />
         </TouchableOpacity>
       </View>
 
@@ -117,16 +121,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
   },
-  logoutButton: {
-    backgroundColor: "#ef4444",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  logoutText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "500",
+  profileButton: {
+    backgroundColor: "#0284c7",
+    padding: 8,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   scrollView: {
     flex: 1,
