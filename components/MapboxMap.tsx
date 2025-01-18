@@ -40,6 +40,16 @@
 //       .setLngLat([location.lng, location.lat])
 //       .addTo(mapInstance.current);
 
+<<<<<<< HEAD
+    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+        <div>
+          <h3>Rate this Drink</h3>
+          <label for="rating">Rating (1-5):</label>
+          <input type="number" id="rating" min="1" max="5" />
+          <button id="saveRating">Submit</button>
+        </div>
+      `);
+=======
 //     const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
 //         <div>
 //           <h3>Rate this Drink</h3>
@@ -48,6 +58,7 @@
 //           <button id="saveRating">Submit</button>
 //         </div>
 //       `);
+>>>>>>> main
 
 //     marker.setPopup(popup).togglePopup();
 
@@ -106,6 +117,26 @@
 //           .setLngLat([rating.lng, rating.lat])
 //           .addTo(mapInstance.current as Map);
 
+<<<<<<< HEAD
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+          `<h4>Rating: ${rating.rating}</h4>`
+        );
+        marker.setPopup(popup);
+      });
+    }
+  }, [ratings]);
+
+  return (
+    <div>
+      <h1>Drink Rating Map</h1>
+      <button onClick={addPinAtCurrentLocation} disabled={loading}>
+        {loading ? "Adding Pin..." : "Add Pin at Current Location"}
+      </button>
+      <div ref={mapContainer} style={{ height: "90vh", width: "100%" }}></div>
+    </div>
+  );
+};
+=======
 //         const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
 //           `<h4>Rating: ${rating.rating}</h4>`
 //         );
@@ -124,5 +155,6 @@
 //     </div>
 //   );
 // };
+>>>>>>> main
 
 // export default MapboxMap;

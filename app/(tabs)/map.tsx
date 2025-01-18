@@ -1,13 +1,13 @@
-import MapboxMap from "@/components/MapboxMap";
-import React from "react";
+import MapBox from "@/components/MapBox";
+import { View, Text } from "react-native";
 
-const App: React.FC = () => {
+const Map = () => {
   return (
-    <div>
-      <h1>Welcome to Drink Ratings</h1>
-      <MapboxMap />
-    </div>
+    <View>
+      <Text>map</Text>
+      <MapBox />
+    </View>
   );
 };
 
-export default App;
+export default Map;
