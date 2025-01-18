@@ -6,4 +6,6 @@ declare interface SavedLocation {
   location_latitude: string;
   location_longitude: string;
   rating: number;
+  description: string;
+  drinkType: string;
 }
