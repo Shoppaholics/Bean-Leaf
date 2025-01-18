@@ -177,12 +177,13 @@ const Addict = () => {
           />
         ))}
       </MapView>
-
-      <View style={styles.inputContainer}>
-        <TouchableOpacity onPress={startRating}>
+      <View style={styles.logoContainer}>
+      <TouchableOpacity onPress={startRating}>
           <Image source={icon} style={{ width: 20, height: 20 }} />
         </TouchableOpacity>
-        {showRatingInputs && (
+      </View>
+      {showRatingInputs && (
+        <View style={styles.inputContainer}>
           <View>
             <Text>Drink Type:</Text>
             <TextInput
@@ -214,8 +215,8 @@ const Addict = () => {
 
             <Button title="Submit" onPress={submitRating} />
           </View>
+        </View>
         )}
-      </View>
     </SafeAreaView>
   ) : (
     <SafeAreaView>
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: "absolute",
-    top: 75,
+    top: 130,
     left: 20,
     right: 20,
     backgroundColor: "white",
@@ -245,8 +246,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
     zIndex: 1,
+  },
+logoContainer: {
+  position: "absolute",
+  top: 75,
+  left: 20,
+  right: 20,
+  backgroundColor: "white",
+  padding: 15,
+  borderRadius: 30,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+  zIndex: 1,
+  width: 50,
   },
   input: {
     backgroundColor: "#f0f0f0",
