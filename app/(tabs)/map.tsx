@@ -1,13 +1,8 @@
-import MapTilerMap from "../../components/MapTiler";
-import { View, Text } from "react-native";
+import Ratings from "@/components/Ratings";
+import { StyleSheet } from "react-native";
 
 const Map = () => {
-  return (
-    <View>
-      <Text>map</Text>
-        <MapTilerMap />    
-      </View>
-  );
+  return <Ratings />;
 };
 
 export default Map;

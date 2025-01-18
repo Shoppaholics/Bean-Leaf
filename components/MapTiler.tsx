@@ -3,8 +3,8 @@ import { StyleSheet, View, Dimensions } from "react-native";
 import MapView, { UrlTile } from "react-native-maps";
 
 const MapTilerMap: React.FC = () => {
-  const mapTilerApiKey = "a3AAhXU8voZjQ4laVdFp";
-  const mapStyle = "streets"; // Change this to "basic", "satellite", "hybrid", etc.
+  const mapTilerApiKey = "lFxBJb0ft0QTZN3SElDu";
+  const mapStyle = "satellite"; // Change this to "basic", "satellite", "hybrid", etc.
 
   return (
     <View style={styles.container}>
@@ -13,8 +13,8 @@ const MapTilerMap: React.FC = () => {
         initialRegion={{
           latitude: 1.3521, // Singapore latitude
           longitude: 103.8198, // Singapore longitude
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+          latitudeDelta: 0.3,
+          longitudeDelta: 0.3,
         }}
       >
         <UrlTile
