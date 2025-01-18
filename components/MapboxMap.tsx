@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl, { Map, Marker, Popup } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-mapboxgl.accessToken = "pk.eyJ1IjoiYW1pdGhhMjIxMCIsImEiOiJjbTYxcnAxamcwdWc3MmpvNnlpc2tic3lwIn0.Xu93LKjsjzDoQGXgaXtmNA";
+mapboxgl.accessToken =
+  "pk.eyJ1IjoiYW1pdGhhMjIxMCIsImEiOiJjbTYxcnAxamcwdWc3MmpvNnlpc2tic3lwIn0.Xu93LKjsjzDoQGXgaXtmNA";
 
 type Rating = {
   lng: number;
@@ -39,8 +40,7 @@ const MapboxMap: React.FC = () => {
       .setLngLat([location.lng, location.lat])
       .addTo(mapInstance.current);
 
-    const popup = new mapboxgl.Popup({ offset: 25 })
-      .setHTML(`
+    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
         <div>
           <h3>Rate this Drink</h3>
           <label for="rating">Rating (1-5):</label>
@@ -106,8 +106,9 @@ const MapboxMap: React.FC = () => {
           .setLngLat([rating.lng, rating.lat])
           .addTo(mapInstance.current as Map);
 
-        const popup = new mapboxgl.Popup({ offset: 25 })
-          .setHTML(`<h4>Rating: ${rating.rating}</h4>`);
+        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+          `<h4>Rating: ${rating.rating}</h4>`
+        );
         marker.setPopup(popup);
       });
     }
@@ -119,10 +120,7 @@ const MapboxMap: React.FC = () => {
       <button onClick={addPinAtCurrentLocation} disabled={loading}>
         {loading ? "Adding Pin..." : "Add Pin at Current Location"}
       </button>
-      <div
-        ref={mapContainer}
-        style={{ height: "90vh", width: "100%" }}
-      ></div>
+      <div ref={mapContainer} style={{ height: "90vh", width: "100%" }}></div>
     </div>
   );
 };
