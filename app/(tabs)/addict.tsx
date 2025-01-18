@@ -82,7 +82,7 @@ const Addict = () => {
 
   const submitRating = async () => {
     if (!currentLocation) return;
-    if (!ratingInput || !drinkType || !locationName || !description) {
+    if (!ratingInput || !drinkType || !locationName ) {
       Alert.alert("Error", "Please enter both drink type and rating.");
       return;
     }
@@ -91,6 +91,8 @@ const Addict = () => {
       Alert.alert("Error", "User not authenticated");
       return;
     }
+
+    const finalDescription = description || "No description provided";
 
     const rating = parseFloat(ratingInput);
     if (isNaN(rating) || rating < 1 || rating > 5) {
@@ -109,7 +111,7 @@ const Addict = () => {
     await saveLocation(
       userId,
       locationName,
-      description,
+      finalDescription,
       drinkType,
       parseInt(ratingInput),
       currentLocation.latitude,
@@ -130,6 +132,7 @@ const Addict = () => {
     setShowRatingInputs(false);
     setRatingInput("");
     setDrinkType("");
+    setDescription("");
     Alert.alert("Success", `You rated ${drinkType} with ${rating} stars!`);
   };
 
@@ -200,14 +203,16 @@ const Addict = () => {
               keyboardType="numeric"
               style={styles.input}
             />
+            <Text>Location:</Text>
             <TextInput
               placeholder="Enter location name"
               value={locationName}
               onChangeText={setLocationName}
               style={styles.input}
             />
+            <Text>Description</Text>
             <TextInput
-              placeholder="Enter description"
+              placeholder="Enter description (Optional)"
               value={description}
               onChangeText={setDescription}
               style={styles.input}
