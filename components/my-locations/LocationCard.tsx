@@ -1,10 +1,34 @@
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import React from "react";
 
-const LocationCard = () => {
+const LocationCard = ({
+  id,
+  userId,
+  createdAt,
+  name,
+  latitude,
+  longitude,
+  rating,
+  description,
+  drinkType,
+  onPress,
+}: {
+  id: number;
+  userId: string;
+  createdAt: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  rating: number;
+  description: string;
+  drinkType: string;
+  onPress: (latitude: number, longitude: number) => void;
+}) => {
   return (
     <View>
-      <Text>LocationCard</Text>
+      <TouchableOpacity onPress={() => onPress(latitude, longitude)}>
+        <Text>Location card</Text>
+      </TouchableOpacity>
     </View>
   );
 };

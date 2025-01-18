@@ -13,9 +13,10 @@ import {
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { saveLocation } from "@/utils/locations";
+import { getSavedLocations, saveLocation } from "@/utils/locations";
 import { getUserId } from "@/utils/authentication";
 import icon from "../../assets/images/star.png";
+import SavedLocations from "@/components/my-locations/SavedLocations";
 
 type Pin = {
   id: number;
@@ -33,7 +34,7 @@ const Addict = () => {
     longitude: number;
   } | null>(null);
   const [pins, setPins] = useState<Pin[]>([]);
-  const [showMap, setShowMap] = useState(true);
+  const [showListView, setShowListView] = useState(true);
   const [mapRef, setMapRef] = useState<MapView | null>(null);
 
   // review input fields
@@ -43,7 +44,7 @@ const Addict = () => {
   const [locationName, setLocationName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
 
-  const [savedLocations, setSavedLocations] = useState<Location[]>([]);
+  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
 
   const fetchCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -65,11 +66,14 @@ const Addict = () => {
     });
   };
 
-  const fetchUserId = async () => {
+  const fetchSavedLocations = async () => {
     const userId = await getUserId();
-    if (userId) {
-      setUserId(userId);
+    if (!userId) {
+      return;
     }
+    setUserId(userId);
+    const savedLocations = await getSavedLocations(userId);
+    setSavedLocations(savedLocations);
   };
 
   const startRating = () => {
@@ -134,7 +138,7 @@ const Addict = () => {
   };
 
   useEffect(() => {
-    fetchUserId();
+    fetchSavedLocations();
     fetchCurrentLocation();
   }, []);
 
@@ -151,10 +155,25 @@ const Addict = () => {
     }
   }, [currentLocation]);
 
-  return showMap ? (
+  const focusMapOnLocation = (latitude: number, longitude: number) => {
+    setShowListView(false);
+    setCurrentLocation({ latitude: latitude, longitude: longitude });
+    // Animate map to current location
+
+    // mapRef?.animateToRegion({
+    //   latitude: 1.3084797418064136,
+    //   longitude: 103.77293754515168,
+    //   latitudeDelta: 0.01,
+    //   longitudeDelta: 0.01,
+    // });
+  };
+
+  return (
     <SafeAreaView edges={["right", "bottom", "left"]} style={styles.container}>
       <MapView
-        ref={(ref) => setMapRef(ref)}
+        ref={(ref) => {
+          setMapRef(ref);
+        }}
         style={styles.map}
         initialRegion={{
           latitude: 1.3521,
@@ -216,10 +235,15 @@ const Addict = () => {
           </View>
         )}
       </View>
-    </SafeAreaView>
-  ) : (
-    <SafeAreaView>
-      <Text>Saved</Text>
+      <Button title="List view" onPress={() => setShowListView(true)} />
+      {showListView && (
+        <SavedLocations
+          isVisible={showListView}
+          setIsVisible={setShowListView}
+          savedLocations={savedLocations}
+          onPress={focusMapOnLocation}
+        />
+      )}
     </SafeAreaView>
   );
 };

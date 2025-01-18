@@ -18,7 +18,7 @@ export async function getSavedLocations(
 
     return data || [];
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Error getting saved locations:", error);
     return [];
   }
 }
