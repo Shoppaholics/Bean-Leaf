@@ -7,12 +7,15 @@ import {
   Text,
   TextInput,
   Dimensions,
+  Image,
+  TouchableOpacity,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { saveLocation } from "@/utils/locations";
 import { getUserId } from "@/utils/authentication";
+import icon from "../../assets/images/star.png";
 
 type Pin = {
   id: number;
@@ -74,7 +77,7 @@ const Addict = () => {
       Alert.alert("Error", "Location not available.");
       return;
     }
-    setShowRatingInputs(true);
+    setShowRatingInputs(!showRatingInputs);
   };
 
   const submitRating = async () => {
@@ -176,7 +179,9 @@ const Addict = () => {
       </MapView>
 
       <View style={styles.inputContainer}>
-        <Button title="Rate Here" onPress={startRating} />
+        <TouchableOpacity onPress={startRating}>
+          <Image source={icon} style={{ width: 20, height: 20 }} />
+        </TouchableOpacity>
         {showRatingInputs && (
           <View>
             <Text>Drink Type:</Text>
