@@ -15,6 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getSavedLocations, saveLocation } from "@/utils/locations";
 import { getUserId } from "@/utils/authentication";
 import icon from "../../assets/images/star.png";
+import listIcon from "../../assets/icons/list.png";
+
 import SavedLocations from "@/components/my-locations/SavedLocations";
 
 type Pin = {
@@ -148,7 +150,7 @@ const Addict = () => {
         latitude: location.location_latitude,
         longitude: location.location_longitude,
         rating: location.rating,
-        drinkType: location.drinkType,
+        drinkType: location.drink_type,
       }));
       console.log("Loaded pins:", loadedPins);
       setPins(loadedPins);
@@ -176,20 +178,12 @@ const Addict = () => {
   }, [currentLocation]);
 
   useEffect(() => {
-    retrievePins(); 
+    retrievePins();
   }, [userId]);
 
   const focusMapOnLocation = (latitude: number, longitude: number) => {
     setShowListView(false);
     setCurrentLocation({ latitude: latitude, longitude: longitude });
-    // Animate map to current location
-
-    // mapRef?.animateToRegion({
-    //   latitude: 1.3084797418064136,
-    //   longitude: 103.77293754515168,
-    //   latitudeDelta: 0.01,
-    //   longitudeDelta: 0.01,
-    // });
   };
 
   return (
@@ -223,6 +217,11 @@ const Addict = () => {
       <View style={styles.logoContainer}>
         <TouchableOpacity onPress={startRating}>
           <Image source={icon} style={{ width: 20, height: 20 }} />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.listIconContainer}>
+        <TouchableOpacity onPress={() => setShowListView(true)}>
+          <Image source={listIcon} style={{ width: 20, height: 20 }} />
         </TouchableOpacity>
       </View>
       {showRatingInputs && (
@@ -262,7 +261,7 @@ const Addict = () => {
           </View>
         </View>
       )}
-      <Button title="List view" onPress={() => setShowListView(true)} />
+
       {showListView && (
         <SavedLocations
           isVisible={showListView}
@@ -288,7 +287,7 @@ const styles = StyleSheet.create({
   },
   map: {
     width: "100%",
-    height: "100%",
+    height: "105%",
   },
   inputContainer: {
     position: "absolute",
@@ -319,6 +318,20 @@ const styles = StyleSheet.create({
     elevation: 5,
     zIndex: 1,
     width: 50,
+  },
+  listIconContainer: {
+    position: "absolute",
+    top: 75,
+    right: 20,
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    alignItems: "center",
+    zIndex: 1,
   },
   input: {
     backgroundColor: "#f0f0f0",
