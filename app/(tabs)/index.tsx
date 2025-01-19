@@ -17,6 +17,7 @@ type Location = {
   description: string;
   rating: number;
   drink_type: string;
+  user_email: string;
 };
 
 export default function Explore() {
@@ -26,13 +27,32 @@ export default function Explore() {
 
   const fetchLocations = async () => {
     try {
-      const { data, error } = await supabase
+      // First get locations with user_id
+      const { data: locationsData, error: locationsError } = await supabase
         .from("my_locations")
-        .select("*")
+        .select("*, user_id")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setLocations(data || []);
+      if (locationsError) throw locationsError;
+
+      // Then get emails for each user_id
+      const userIds = locationsData?.map((loc) => loc.user_id) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .in("id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const locationsWithEmail =
+        locationsData?.map((location) => ({
+          ...location,
+          user_email:
+            profilesData?.find((p) => p.id === location.user_id)?.email || "",
+        })) || [];
+
+      setLocations(locationsWithEmail);
     } catch (error) {
       console.error("Error fetching locations:", error);
     }
@@ -94,6 +114,9 @@ export default function Explore() {
             </View>
             <ThemedText style={styles.description}>
               {location.description}
+            </ThemedText>
+            <ThemedText style={styles.userEmail}>
+              by {location.user_email}
             </ThemedText>
           </View>
         ))}
@@ -171,5 +194,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#4b5563",
     lineHeight: 20,
+  },
+  userEmail: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginTop: 4,
   },
 });

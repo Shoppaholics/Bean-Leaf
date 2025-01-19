@@ -10,9 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import {
-  fetchFriends
-} from "../(api)/userServices";
+import { fetchFriends } from "../(api)/userServices";
 import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getSavedLocations, saveLocation } from "@/utils/locations";
@@ -33,6 +31,11 @@ type Pin = {
   drinkType?: string;
   locationName: string;
   imageUrl?: string;
+  userEmail?: string;
+};
+
+type SavedLocationWithEmail = SavedLocation & {
+  user_email?: string;
 };
 
 const Addict = () => {
@@ -53,7 +56,9 @@ const Addict = () => {
   const [locationName, setLocationName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
 
-  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
+  const [savedLocations, setSavedLocations] = useState<
+    SavedLocationWithEmail[]
+  >([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchCurrentLocation = async () => {
@@ -224,23 +229,51 @@ const Addict = () => {
     const data = await fetchFriendsFavourites(friends);
     console.log(data);
     return data;
-  }
+  };
 
   const retrievePins = async () => {
     if (!userId) return;
     try {
       let savedLocations = await getSavedLocations(userId);
-      savedLocations = savedLocations.concat(await getFriendsFavorited());
-      const loadedPins = savedLocations.map((location) => ({
+      const friendLocations = await getFriendsFavorited();
+
+      // Get current user's email
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", userId)
+        .single();
+
+      const currentUserEmail = profile?.email;
+
+      // Map user's locations with their own email
+      const userPins = savedLocations.map((location) => ({
         id: location.id,
         latitude: location.location_latitude,
         longitude: location.location_longitude,
         rating: location.rating,
         drinkType: location.drink_type,
         locationName: location.location_name,
+        userEmail: currentUserEmail, // Add user's own email
       }));
-      console.log("Loaded pins:", loadedPins);
-      setPins(loadedPins);
+
+      // Map friend's locations with their email
+      const friendPins = friendLocations.map((location) => ({
+        id: location.id,
+        latitude: location.location_latitude,
+        longitude: location.location_longitude,
+        rating: location.rating,
+        drinkType: location.drink_type,
+        locationName: location.location_name,
+        userEmail: location.user_email,
+      }));
+
+      const allPins = [...userPins, ...friendPins];
+      setPins(allPins);
+      setSavedLocations([...savedLocations, ...friendLocations]);
     } catch (error) {
       console.error("Error retrieving pins:", error);
     }
@@ -302,6 +335,9 @@ const Addict = () => {
                   <Text style={styles.markerTitle} numberOfLines={1}>
                     {pin.locationName}
                   </Text>
+                  {pin.userEmail && (
+                    <Text style={styles.userEmail}>by {pin.userEmail}</Text>
+                  )}
                   <View style={styles.ratingContainer}>
                     <Text style={styles.ratingText}>★ {pin.rating}</Text>
                     <Text style={styles.drinkType}>{pin.drinkType}</Text>
@@ -525,6 +561,11 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 8,
     marginBottom: 10,
+  },
+  userEmail: {
+    fontSize: 10,
+    color: "#6b7280",
+    marginBottom: 2,
   },
 });
 

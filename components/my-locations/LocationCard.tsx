@@ -6,6 +6,21 @@ import deleteIcon from "../../assets/icons/delete.png";
 
 import { deleteSavedLocation } from "@/utils/locations";
 
+interface LocationCardProps {
+  id: number;
+  userId: string;
+  createdAt: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  rating: number;
+  description: string;
+  drinkType: string;
+  onPress: (latitude: number, longitude: number) => void;
+  setSavedLocations: React.Dispatch<React.SetStateAction<SavedLocation[]>>;
+  userEmail?: string;
+}
+
 const LocationCard = ({
   id,
   userId,
@@ -18,28 +33,27 @@ const LocationCard = ({
   drinkType,
   onPress,
   setSavedLocations,
-}: {
-  id: number;
-  userId: string;
-  createdAt: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  rating: number;
-  description: string;
-  drinkType: string;
-  onPress: (latitude: number, longitude: number) => void;
-  setSavedLocations: React.Dispatch<React.SetStateAction<SavedLocation[]>>;
-}) => {
+  userEmail,
+}: LocationCardProps) => {
   const handleDelete = () => {
     deleteSavedLocation(id, userId);
     setSavedLocations((prev) => prev.filter((location) => location.id != id));
   };
 
   return (
-    <View style={styles.cardContainer}>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={styles.locationText}>{name}</Text>
+    <View style={styles.card}>
+      <View style={styles.cardContent}>
+        <View>
+          <Text style={styles.locationName}>{name}</Text>
+          <Text style={styles.description}>{description}</Text>
+          <View style={styles.ratingContainer}>
+            <Text style={styles.rating}>★ {rating}</Text>
+            <Text style={styles.drinkType}>{drinkType}</Text>
+          </View>
+          <Text style={styles.userEmail}>by {userEmail || "Me"}</Text>
+        </View>
+      </View>
+      <View style={styles.actionButtons}>
         <TouchableOpacity onPress={handleDelete}>
           <Image source={deleteIcon} style={{ width: 18, height: 18 }} />
         </TouchableOpacity>
@@ -50,14 +64,6 @@ const LocationCard = ({
           <Image source={locationIcon} style={{ width: 18, height: 18 }} />
         </TouchableOpacity>
       </View>
-      <Text style={styles.descriptionText}>{description}</Text>
-      <View style={styles.ratingContainer}>
-        <Text style={{ color: "gray", marginRight: 10 }}>{drinkType}</Text>
-        <View style={{ flexDirection: "row" }}>
-          <Image source={star} style={{ width: 16, height: 16 }} />
-          <Text style={{ marginLeft: 5 }}>{rating}</Text>
-        </View>
-      </View>
     </View>
   );
 };
@@ -65,22 +71,43 @@ const LocationCard = ({
 export default LocationCard;
 
 const styles = StyleSheet.create({
-  cardContainer: {
+  card: {
     borderWidth: 0.5,
     borderRadius: 10,
     borderColor: "#d1d5db",
     padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  locationText: {
+  cardContent: {
+    flex: 1,
+  },
+  locationName: {
     flex: 1,
     fontSize: 16,
     fontWeight: 500,
   },
-  descriptionText: {
+  description: {
     marginTop: 8,
   },
   ratingContainer: {
     flexDirection: "row",
     marginTop: 12,
+  },
+  rating: {
+    marginRight: 10,
+  },
+  drinkType: {
+    color: "gray",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  userEmail: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginTop: 4,
+    fontStyle: "italic",
   },
 });
