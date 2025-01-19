@@ -31,7 +31,7 @@ type Pin = {
   rating?: number;
   drinkType?: string;
   locationName: string;
-  imageUrl?: string;
+  // imageUrl?: string;
   userEmail?: string;
 };
 
@@ -60,7 +60,7 @@ const Addict = () => {
   const [savedLocations, setSavedLocations] = useState<
     SavedLocationWithEmail[]
   >([]);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const params = useLocalSearchParams();
 
@@ -102,56 +102,56 @@ const Addict = () => {
     setShowRatingInputs(!showRatingInputs);
   };
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission needed", "Please grant camera roll permissions");
-      return;
-    }
+  // const pickImage = async () => {
+  //   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  //   if (status !== "granted") {
+  //     Alert.alert("Permission needed", "Please grant camera roll permissions");
+  //     return;
+  //   }
 
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: false,
-        aspect: [4, 3],
-        quality: 0,
-      });
+  //   try {
+  //     const result = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes: ["images"],
+  //       allowsEditing: false,
+  //       aspect: [4, 3],
+  //       quality: 0,
+  //     });
 
-      if (!result.canceled && result.assets[0]) {
-        setSelectedImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image. Please try again.");
-    }
-  };
+  //     if (!result.canceled && result.assets[0]) {
+  //       setSelectedImage(result.assets[0].uri);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error picking image:", error);
+  //     Alert.alert("Error", "Failed to pick image. Please try again.");
+  //   }
+  // };
 
-  const uploadImage = async (uri: string) => {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const filename = `drink-${Date.now()}.jpg`;
+  // const uploadImage = async (uri: string) => {
+  //   try {
+  //     const response = await fetch(uri);
+  //     const blob = await response.blob();
+  //     const filename = `drink-${Date.now()}.jpg`;
 
-      // Upload to 'images' bucket
-      const { data, error } = await supabase.storage
-        .from("images")
-        .upload(filename, blob, {
-          contentType: "image/jpeg",
-        });
+  //     // Upload to 'images' bucket
+  //     const { data, error } = await supabase.storage
+  //       .from("images")
+  //       .upload(filename, blob, {
+  //         contentType: "image/jpeg",
+  //       });
 
-      if (error) throw error;
+  //     if (error) throw error;
 
-      // Get URL from same bucket
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("images").getPublicUrl(filename);
+  //     // Get URL from same bucket
+  //     const {
+  //       data: { publicUrl },
+  //     } = supabase.storage.from("images").getPublicUrl(filename);
 
-      return publicUrl;
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      throw error;
-    }
-  };
+  //     return publicUrl;
+  //   } catch (error) {
+  //     console.error("Error uploading image:", error);
+  //     throw error;
+  //   }
+  // };
 
   const submitRating = async () => {
     if (!currentLocation) return;
@@ -175,22 +175,22 @@ const Addict = () => {
 
     fetchCurrentLocation(); //Update to the latest current location
 
-    try {
-      let imageUrl = undefined;
-      if (selectedImage) {
-        imageUrl = await uploadImage(selectedImage);
-      }
+    // try {
+    //   let imageUrl = undefined;
+    //   if (selectedImage) {
+    //     imageUrl = await uploadImage(selectedImage);
+    //   }
 
-      await saveLocation(
-        userId,
-        locationName,
-        finalDescription,
-        drinkType,
-        parseInt(ratingInput),
-        currentLocation.latitude,
-        currentLocation.longitude,
-        imageUrl
-      );
+    //   await saveLocation(
+    //     userId,
+    //     locationName,
+    //     finalDescription,
+    //     drinkType,
+    //     parseInt(ratingInput),
+    //     currentLocation.latitude,
+    //     currentLocation.longitude,
+    //     imageUrl
+    //   );
 
       const newPin: Pin = {
         id: Date.now(),
@@ -216,11 +216,11 @@ const Addict = () => {
       setRatingInput("");
       setDrinkType("");
       setDescription("");
-      setSelectedImage(null);
+      // setSelectedImage(null);
       Alert.alert("Success", `You rated ${drinkType} with ${rating} stars!`);
-    } catch (error) {
-      Alert.alert("Error", "Failed to save rating");
-    }
+    // } catch (error) {
+    //   Alert.alert("Error", "Failed to save rating");
+    // }
   };
 
   const getFriendsFavorited = async () => {
@@ -438,7 +438,7 @@ const Addict = () => {
               style={styles.input}
             />
 
-            <View style={styles.imageUploadSection}>
+            {/* <View style={styles.imageUploadSection}>
               <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
                 <Text style={styles.uploadButtonText}>
                   {selectedImage ? "Change Image" : "Add Image"}
@@ -451,7 +451,7 @@ const Addict = () => {
                   style={styles.previewImage}
                 />
               )}
-            </View>
+            </View> */}
 
             <Button title="Submit" onPress={submitRating} />
           </View>
@@ -587,27 +587,27 @@ const styles = StyleSheet.create({
     borderTopColor: "white",
     alignSelf: "center",
   },
-  imageUploadSection: {
-    marginTop: 10,
-    alignItems: "center",
-  },
-  uploadButton: {
-    backgroundColor: "#e5e7eb",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  uploadButtonText: {
-    color: "#4b5563",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  previewImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
+  // imageUploadSection: {
+  //   marginTop: 10,
+  //   alignItems: "center",
+  // },
+  // uploadButton: {
+  //   backgroundColor: "#e5e7eb",
+  //   padding: 10,
+  //   borderRadius: 8,
+  //   marginBottom: 10,
+  // },
+  // uploadButtonText: {
+  //   color: "#4b5563",
+  //   fontSize: 14,
+  //   fontWeight: "500",
+  // },
+  // previewImage: {
+  //   width: 100,
+  //   height: 100,
+  //   borderRadius: 8,
+  //   marginBottom: 10,
+  // },
   userEmail: {
     fontSize: 10,
     color: "#6b7280",
