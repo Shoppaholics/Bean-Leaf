@@ -23,34 +23,32 @@ export async function getSavedLocations(
   }
 }
 
-export async function saveLocation(
+export const saveLocation = async (
   userId: string,
   locationName: string,
   description: string,
   drinkType: string,
   rating: number,
   latitude: number,
-  longitude: number
-) {
-  try {
-    const { data, error } = await supabase.from("my_locations").insert([
-      {
-        user_id: userId,
-        location_name: locationName,
-        description: description,
-        drink_type: drinkType,
-        rating: rating,
-        location_latitude: latitude,
-        location_longitude: longitude,
-      },
-    ]);
+  longitude: number,
+  imageUrl?: string
+) => {
+  const { data, error } = await supabase.from("my_locations").insert([
+    {
+      user_id: userId,
+      location_name: locationName,
+      description,
+      drink_type: drinkType,
+      rating,
+      location_latitude: latitude,
+      location_longitude: longitude,
+      image_url: imageUrl,
+    },
+  ]);
 
-    return { success: true, data };
-  } catch (error) {
-    console.error("Error saving location to database:", error);
-    return { success: false, error: "Error saving location" };
-  }
-}
+  if (error) throw error;
+  return data;
+};
 
 export async function deleteSavedLocation(locationId: number, userId: string) {
   try {

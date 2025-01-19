@@ -16,6 +16,8 @@ import { getSavedLocations, saveLocation } from "@/utils/locations";
 import { getUserId } from "@/utils/authentication";
 import icon from "../../assets/images/star.png";
 import listIcon from "../../assets/icons/list.png";
+import * as ImagePicker from "expo-image-picker";
+import { supabase } from "@/lib/supabase";
 
 import SavedLocations from "@/components/my-locations/SavedLocations";
 
@@ -26,6 +28,7 @@ type Pin = {
   rating?: number;
   drinkType?: string;
   locationName: string;
+  imageUrl?: string;
 };
 
 const Addict = () => {
@@ -47,6 +50,7 @@ const Addict = () => {
   const [description, setDescription] = useState<string>("");
 
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -86,6 +90,57 @@ const Addict = () => {
     setShowRatingInputs(!showRatingInputs);
   };
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Please grant camera roll permissions");
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: false,
+        aspect: [4, 3],
+        quality: 0,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setSelectedImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
+    }
+  };
+
+  const uploadImage = async (uri: string) => {
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const filename = `drink-${Date.now()}.jpg`;
+
+      // Upload to 'images' bucket
+      const { data, error } = await supabase.storage
+        .from("images")
+        .upload(filename, blob, {
+          contentType: "image/jpeg",
+        });
+
+      if (error) throw error;
+
+      // Get URL from same bucket
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("images").getPublicUrl(filename);
+
+      return publicUrl;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+  };
+
   const submitRating = async () => {
     if (!currentLocation) return;
     if (!ratingInput || !drinkType || !locationName) {
@@ -108,41 +163,52 @@ const Addict = () => {
 
     fetchCurrentLocation(); //Update to the latest current location
 
-    const newPin: Pin = {
-      id: Date.now(),
-      latitude: currentLocation!.latitude,
-      longitude: currentLocation!.longitude,
-      rating,
-      drinkType,
-      locationName,
-    };
+    try {
+      let imageUrl = undefined;
+      if (selectedImage) {
+        imageUrl = await uploadImage(selectedImage);
+      }
 
-    await saveLocation(
-      userId,
-      locationName,
-      finalDescription,
-      drinkType,
-      parseInt(ratingInput),
-      currentLocation.latitude,
-      currentLocation.longitude
-    );
+      await saveLocation(
+        userId,
+        locationName,
+        finalDescription,
+        drinkType,
+        parseInt(ratingInput),
+        currentLocation.latitude,
+        currentLocation.longitude,
+        imageUrl
+      );
 
-    setPins((prevPins) => [...prevPins, newPin]);
+      const newPin: Pin = {
+        id: Date.now(),
+        latitude: currentLocation!.latitude,
+        longitude: currentLocation!.longitude,
+        rating,
+        drinkType,
+        locationName,
+      };
 
-    // Center map on new pin
-    mapRef?.animateToRegion({
-      latitude: newPin.latitude,
-      longitude: newPin.longitude,
-      latitudeDelta: 0.01,
-      longitudeDelta: 0.01,
-    });
+      setPins((prevPins) => [...prevPins, newPin]);
 
-    console.log("New pin: ", newPin);
-    setShowRatingInputs(false);
-    setRatingInput("");
-    setDrinkType("");
-    setDescription("");
-    Alert.alert("Success", `You rated ${drinkType} with ${rating} stars!`);
+      // Center map on new pin
+      mapRef?.animateToRegion({
+        latitude: newPin.latitude,
+        longitude: newPin.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+
+      console.log("New pin: ", newPin);
+      setShowRatingInputs(false);
+      setRatingInput("");
+      setDrinkType("");
+      setDescription("");
+      setSelectedImage(null);
+      Alert.alert("Success", `You rated ${drinkType} with ${rating} stars!`);
+    } catch (error) {
+      Alert.alert("Error", "Failed to save rating");
+    }
   };
 
   const retrievePins = async () => {
@@ -273,6 +339,21 @@ const Addict = () => {
               onChangeText={setDescription}
               style={styles.input}
             />
+
+            <View style={styles.imageUploadSection}>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+                <Text style={styles.uploadButtonText}>
+                  {selectedImage ? "Change Image" : "Add Image"}
+                </Text>
+              </TouchableOpacity>
+
+              {selectedImage && (
+                <Image
+                  source={{ uri: selectedImage }}
+                  style={styles.previewImage}
+                />
+              )}
+            </View>
 
             <Button title="Submit" onPress={submitRating} />
           </View>
@@ -407,6 +488,27 @@ const styles = StyleSheet.create({
     borderRightColor: "transparent",
     borderTopColor: "white",
     alignSelf: "center",
+  },
+  imageUploadSection: {
+    marginTop: 10,
+    alignItems: "center",
+  },
+  uploadButton: {
+    backgroundColor: "#e5e7eb",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  uploadButtonText: {
+    color: "#4b5563",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  previewImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 10,
   },
 });
 
