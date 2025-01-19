@@ -10,6 +10,9 @@ import {
   TouchableOpacity,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import {
+  fetchFriends
+} from "../(api)/userServices";
 import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getSavedLocations, saveLocation } from "@/utils/locations";
@@ -18,6 +21,7 @@ import icon from "../../assets/images/star.png";
 import listIcon from "../../assets/icons/list.png";
 
 import SavedLocations from "@/components/my-locations/SavedLocations";
+import { fetchFriendsFavourites } from "../(api)/userServices";
 
 type Pin = {
   id: number;
@@ -145,10 +149,22 @@ const Addict = () => {
     Alert.alert("Success", `You rated ${drinkType} with ${rating} stars!`);
   };
 
+  const getFriendsFavorited = async () => {
+    // Get all friends of this user
+    const { friends } = await fetchFriends();
+    console.log(friends);
+
+    // pass friends to supabase and check
+    const data = await fetchFriendsFavourites(friends);
+    console.log(data);
+    return data;
+  }
+
   const retrievePins = async () => {
     if (!userId) return;
     try {
-      const savedLocations = await getSavedLocations(userId);
+      let savedLocations = await getSavedLocations(userId);
+      savedLocations = savedLocations.concat(await getFriendsFavorited());
       const loadedPins = savedLocations.map((location) => ({
         id: location.id,
         latitude: location.location_latitude,

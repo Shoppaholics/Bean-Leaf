@@ -52,6 +52,52 @@ export const searchUsers = async (email: string) => {
   }
 };
 
+export const fetchFriendsFavourites = async (friends: any) => {
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError) throw authError;
+    if (!user) throw new Error("Not authenticated");
+
+    let allLocations: Array<any> = [];
+
+    for (const eachFriend of friends) {
+      console.log(eachFriend);
+
+      if (eachFriend.from_user_id === user.id) {
+      
+        const {data : eachFriendLocation } = await supabase
+          .from("my_locations")
+          .select("*")
+          .eq("user_id", eachFriend.to_user_id);
+
+        allLocations = allLocations.concat(eachFriendLocation)
+
+      } else {
+        console.log(eachFriend);
+        console.log(1);
+
+        const {data : eachFriendLocation } = await supabase
+          .from("my_locations")
+          .select("*")
+          .eq("user_id", eachFriend.from_user_id);    
+
+        allLocations = allLocations.concat(eachFriendLocation)
+
+      }
+
+    }
+    return allLocations;
+
+  } catch (error) {
+    console.error("Search error:", error);
+    throw error;
+  }
+
+}
+
 export const fetchFriends = async () => {
   try {
     const {
