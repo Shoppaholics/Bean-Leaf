@@ -323,7 +323,19 @@ const Addict = () => {
 
   const focusMapOnLocation = (latitude: number, longitude: number) => {
     setShowListView(false);
-    setCurrentLocation({ latitude: latitude, longitude: longitude });
+
+    // Add animation to the selected location
+    setTimeout(() => {
+      mapRef?.animateToRegion(
+        {
+          latitude,
+          longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+        1000
+      );
+    }, 100);
   };
 
   return (
