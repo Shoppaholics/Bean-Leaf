@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  Dimensions,
   Image,
   TouchableOpacity,
 } from "react-native";
@@ -140,6 +139,24 @@ const Addict = () => {
     Alert.alert("Success", `You rated ${drinkType} with ${rating} stars!`);
   };
 
+  const retrievePins = async () => {
+    if (!userId) return;
+    try {
+      const savedLocations = await getSavedLocations(userId);
+      const loadedPins = savedLocations.map((location) => ({
+        id: location.id,
+        latitude: location.location_latitude,
+        longitude: location.location_longitude,
+        rating: location.rating,
+        drinkType: location.drinkType,
+      }));
+      console.log("Loaded pins:", loadedPins);
+      setPins(loadedPins);
+    } catch (error) {
+      console.error("Error retrieving pins:", error);
+    }
+  };
+
   useEffect(() => {
     fetchSavedLocations();
     fetchCurrentLocation();
@@ -157,6 +174,10 @@ const Addict = () => {
       });
     }
   }, [currentLocation]);
+
+  useEffect(() => {
+    retrievePins(); 
+  }, [userId]);
 
   const focusMapOnLocation = (latitude: number, longitude: number) => {
     setShowListView(false);
@@ -255,6 +276,11 @@ const Addict = () => {
 };
 
 const styles = StyleSheet.create({
+  title: {
+    fontWeight: "bold",
+    fontSize: 16,
+    color: "#ff5733",
+  },
   container: {
     flex: 1,
     backgroundColor: "white",
