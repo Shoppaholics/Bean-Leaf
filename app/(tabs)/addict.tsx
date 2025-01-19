@@ -25,6 +25,7 @@ type Pin = {
   longitude: number;
   rating?: number;
   drinkType?: string;
+  locationName: string;
 };
 
 const Addict = () => {
@@ -105,12 +106,15 @@ const Addict = () => {
       return;
     }
 
+    fetchCurrentLocation(); //Update to the latest current location
+
     const newPin: Pin = {
       id: Date.now(),
       latitude: currentLocation!.latitude,
       longitude: currentLocation!.longitude,
       rating,
       drinkType,
+      locationName,
     };
 
     await saveLocation(
@@ -151,6 +155,7 @@ const Addict = () => {
         longitude: location.location_longitude,
         rating: location.rating,
         drinkType: location.drink_type,
+        locationName: location.location_name,
       }));
       console.log("Loaded pins:", loadedPins);
       setPins(loadedPins);
@@ -208,10 +213,22 @@ const Addict = () => {
               latitude: pin.latitude,
               longitude: pin.longitude,
             }}
-            title={pin.drinkType}
-            description={`Rating: ${pin.rating} stars`}
-            pinColor="red"
-          />
+          >
+            <View>
+              <View style={styles.customMarker}>
+                <View style={styles.markerContent}>
+                  <Text style={styles.markerTitle} numberOfLines={1}>
+                    {pin.locationName}
+                  </Text>
+                  <View style={styles.ratingContainer}>
+                    <Text style={styles.ratingText}>★ {pin.rating}</Text>
+                    <Text style={styles.drinkType}>{pin.drinkType}</Text>
+                  </View>
+                </View>
+                <View style={styles.pointer} />
+              </View>
+            </View>
+          </Marker>
         ))}
       </MapView>
       <View style={styles.logoContainer}>
@@ -338,6 +355,58 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 5,
     borderRadius: 5,
+  },
+  customMarker: {
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    marginBottom: 8,
+  },
+  markerContent: {
+    alignItems: "center",
+    maxWidth: 150,
+  },
+  markerTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 2,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#f59e0b",
+  },
+  drinkType: {
+    fontSize: 10,
+    color: "#6b7280",
+  },
+  pointer: {
+    position: "absolute",
+    bottom: -8,
+    width: 0,
+    height: 0,
+    backgroundColor: "transparent",
+    borderStyle: "solid",
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 8,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: "white",
+    alignSelf: "center",
   },
 });
 
