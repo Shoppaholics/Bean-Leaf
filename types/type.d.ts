@@ -7,5 +7,5 @@ declare interface SavedLocation {
   location_longitude: number;
   rating: number;
   description: string;
-  drinkType: string;
+  drink_type: string;
 }

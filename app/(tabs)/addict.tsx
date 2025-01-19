@@ -248,6 +248,7 @@ const Addict = () => {
           setIsVisible={setShowListView}
           savedLocations={savedLocations}
           onPress={focusMapOnLocation}
+          setSavedLocations={setSavedLocations}
         />
       )}
     </SafeAreaView>
