@@ -52,6 +52,26 @@ export const searchUsers = async (email: string) => {
   }
 };
 
+export const fetchImageUrls = async () => {
+  try {
+    const bucketName = "images"; // Replace with your bucket name
+    const fileNames = ["coffee.jpeg", "tea.jpeg"]; // Replace with your file names
+
+    const urls = fileNames.map((fileName) => {
+      const { data } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName);
+      return data.publicUrl; // Public URL for the image
+    });
+
+    return urls; // Array of URLs
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    throw error;
+  }
+};
+
+
 export const fetchFriendsFavourites = async (friends: any) => {
   try {
     const {

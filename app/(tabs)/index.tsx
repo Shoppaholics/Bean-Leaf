@@ -5,7 +5,9 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Image
 } from "react-native";
+import { fetchImageUrls } from "../(api)/userServices";
 import { ThemedText } from "@/components/ThemedText";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
@@ -20,6 +22,7 @@ type Location = {
   user_email: string;
   location_latitude: number;
   location_longitude: number;
+  image_url: string;
 };
 
 export default function Explore() {
@@ -34,6 +37,17 @@ export default function Explore() {
         .from("my_locations")
         .select("*, user_id")
         .order("created_at", { ascending: false });
+
+        const imageUrls = await fetchImageUrls();  // Fetch the URLs
+
+      for (const eachData of locationsData) {
+        if (eachData.drink_type.toLowerCase() === "coffee") {
+          eachData.image_url = imageUrls[0];
+        } else if (eachData.drink_type.toLowerCase() === "tea") {
+          eachData.image_url = imageUrls[1];
+        }
+      }
+
 
       if (locationsError) throw locationsError;
 
@@ -122,7 +136,14 @@ export default function Explore() {
             }
           >
             <View style={styles.card}>
-              <View style={styles.cardHeader}>
+              {location.image_url && (  // Check if image_url exists before rendering
+              <Image
+                source={{ uri: location.image_url }}  // Use the image_url to display the image
+                style={styles.image}  // Styling for the image
+                resizeMode="cover"
+              />
+            )}
+            <View style={styles.cardHeader}>
                 <ThemedText style={styles.locationName}>
                   {location.location_name}
                 </ThemedText>
@@ -208,6 +229,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#f59e0b",
+  },
+  image: {
+    width: "100%",
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 8,
   },
   drinkType: {
     fontSize: 14,
