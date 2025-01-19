@@ -5,7 +5,9 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Image
 } from "react-native";
+import { fetchImageUrls } from "../(api)/userServices";
 import { ThemedText } from "@/components/ThemedText";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
@@ -17,6 +19,10 @@ type Location = {
   description: string;
   rating: number;
   drink_type: string;
+  user_email: string;
+  location_latitude: number;
+  location_longitude: number;
+  image_url: string;
 };
 
 export default function Explore() {
@@ -26,13 +32,43 @@ export default function Explore() {
 
   const fetchLocations = async () => {
     try {
-      const { data, error } = await supabase
+      // First get locations with user_id
+      const { data: locationsData, error: locationsError } = await supabase
         .from("my_locations")
-        .select("*")
+        .select("*, user_id")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setLocations(data || []);
+        const imageUrls = await fetchImageUrls();  // Fetch the URLs
+
+      for (const eachData of locationsData) {
+        if (eachData.drink_type.toLowerCase() === "coffee") {
+          eachData.image_url = imageUrls[0];
+        } else if (eachData.drink_type.toLowerCase() === "tea") {
+          eachData.image_url = imageUrls[1];
+        }
+      }
+
+
+      if (locationsError) throw locationsError;
+
+      // Then get emails for each user_id
+      const userIds = locationsData?.map((loc) => loc.user_id) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .in("id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const locationsWithEmail =
+        locationsData?.map((location) => ({
+          ...location,
+          user_email:
+            profilesData?.find((p) => p.id === location.user_id)?.email || "",
+        })) || [];
+
+      setLocations(locationsWithEmail);
     } catch (error) {
       console.error("Error fetching locations:", error);
     }
@@ -57,6 +93,18 @@ export default function Explore() {
     }
   };
 
+  const handleCardPress = (latitude: number, longitude: number) => {
+    // Navigate to map tab with location data
+    router.push({
+      pathname: "/(tabs)/addict",
+      params: {
+        latitude,
+        longitude,
+        zoom: 15,
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -78,24 +126,44 @@ export default function Explore() {
         }
       >
         {locations.map((location) => (
-          <View key={location.id} style={styles.card}>
+          <TouchableOpacity
+            key={location.id}
+            onPress={() =>
+              handleCardPress(
+                location.location_latitude,
+                location.location_longitude
+              )
+            }
+          >
+            <View style={styles.card}>
+              {location.image_url && (  // Check if image_url exists before rendering
+              <Image
+                source={{ uri: location.image_url }}  // Use the image_url to display the image
+                style={styles.image}  // Styling for the image
+                resizeMode="cover"
+              />
+            )}
             <View style={styles.cardHeader}>
-              <ThemedText style={styles.locationName}>
-                {location.location_name}
-              </ThemedText>
-              <View style={styles.ratingContainer}>
-                <ThemedText style={styles.rating}>
-                  ★ {location.rating}
+                <ThemedText style={styles.locationName}>
+                  {location.location_name}
                 </ThemedText>
-                <ThemedText style={styles.drinkType}>
-                  {location.drink_type}
-                </ThemedText>
+                <View style={styles.ratingContainer}>
+                  <ThemedText style={styles.rating}>
+                    ★ {location.rating}
+                  </ThemedText>
+                  <ThemedText style={styles.drinkType}>
+                    {location.drink_type}
+                  </ThemedText>
+                </View>
               </View>
+              <ThemedText style={styles.description}>
+                {location.description}
+              </ThemedText>
+              <ThemedText style={styles.userEmail}>
+                by {location.user_email}
+              </ThemedText>
             </View>
-            <ThemedText style={styles.description}>
-              {location.description}
-            </ThemedText>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
@@ -162,6 +230,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#f59e0b",
   },
+  image: {
+    width: "100%",
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
   drinkType: {
     fontSize: 14,
     color: "#6b7280",
@@ -171,5 +245,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#4b5563",
     lineHeight: 20,
+  },
+  userEmail: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginTop: 4,
   },
 });

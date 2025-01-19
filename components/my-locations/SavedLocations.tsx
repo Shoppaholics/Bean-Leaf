@@ -14,19 +14,27 @@ import ReactNativeModal from "react-native-modal";
 import closeIcon from "../../assets/icons/close.png";
 import { deleteSavedLocation } from "@/utils/locations";
 
+type SavedLocationWithEmail = SavedLocation & {
+  user_email?: string;
+};
+
+interface SavedLocationsProps {
+  isVisible: boolean;
+  setIsVisible: (visible: boolean) => void;
+  savedLocations: SavedLocationWithEmail[];
+  onPress: (latitude: number, longitude: number) => void;
+  setSavedLocations: React.Dispatch<
+    React.SetStateAction<SavedLocationWithEmail[]>
+  >;
+}
+
 const SavedLocations = ({
   isVisible,
   setIsVisible,
   savedLocations,
   onPress,
   setSavedLocations,
-}: {
-  isVisible: boolean;
-  setIsVisible: (visible: boolean) => void;
-  savedLocations: SavedLocation[];
-  onPress: (latitude: number, longitude: number) => void;
-  setSavedLocations: React.Dispatch<React.SetStateAction<SavedLocation[]>>;
-}) => {
+}: SavedLocationsProps) => {
   console.log(savedLocations);
 
   return (
@@ -58,6 +66,7 @@ const SavedLocations = ({
               drinkType={item.drink_type}
               onPress={onPress}
               setSavedLocations={setSavedLocations}
+              userEmail={item.user_email}
             />
           )}
           keyExtractor={(item, index) => item.id.toString()}
@@ -93,5 +102,15 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     alignContent: "center",
+  },
+  cardContent: {
+    flex: 1,
+  },
+  userEmail: {
+    fontSize: 12,
+    color: "#6b7280",
+    textAlign: "right",
+    marginTop: 4,
+    fontStyle: "italic",
   },
 });

@@ -52,6 +52,26 @@ export const searchUsers = async (email: string) => {
   }
 };
 
+export const fetchImageUrls = async () => {
+  try {
+    const bucketName = "images"; // Replace with your bucket name
+    const fileNames = ["coffee.jpeg", "tea.jpeg"]; // Replace with your file names
+
+    const urls = fileNames.map((fileName) => {
+      const { data } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(fileName);
+      return data.publicUrl; // Public URL for the image
+    });
+
+    return urls; // Array of URLs
+  } catch (error) {
+    console.error("Error fetching image URLs:", error);
+    throw error;
+  }
+};
+
+
 export const fetchFriendsFavourites = async (friends: any) => {
   try {
     const {
@@ -64,39 +84,35 @@ export const fetchFriendsFavourites = async (friends: any) => {
     let allLocations: Array<any> = [];
 
     for (const eachFriend of friends) {
-      console.log(eachFriend);
+      let friendId, friendEmail;
 
       if (eachFriend.from_user_id === user.id) {
-      
-        const {data : eachFriendLocation } = await supabase
-          .from("my_locations")
-          .select("*")
-          .eq("user_id", eachFriend.to_user_id);
-
-        allLocations = allLocations.concat(eachFriendLocation)
-
+        friendId = eachFriend.to_user_id;
+        friendEmail = eachFriend.receiver.email;
       } else {
-        console.log(eachFriend);
-        console.log(1);
-
-        const {data : eachFriendLocation } = await supabase
-          .from("my_locations")
-          .select("*")
-          .eq("user_id", eachFriend.from_user_id);    
-
-        allLocations = allLocations.concat(eachFriendLocation)
-
+        friendId = eachFriend.from_user_id;
+        friendEmail = eachFriend.sender.email;
       }
 
+      const { data: eachFriendLocation } = await supabase
+        .from("my_locations")
+        .select("*")
+        .eq("user_id", friendId);
+
+      // Add user email to each location
+      const locationsWithUser = eachFriendLocation?.map((location) => ({
+        ...location,
+        user_email: friendEmail,
+      }));
+
+      allLocations = allLocations.concat(locationsWithUser);
     }
     return allLocations;
-
   } catch (error) {
     console.error("Search error:", error);
     throw error;
   }
-
-}
+};
 
 export const fetchFriends = async () => {
   try {
