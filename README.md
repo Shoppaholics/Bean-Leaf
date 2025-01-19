@@ -1,50 +1,79 @@
-# Welcome to your Expo app 👋
+# Bean&Leaf
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Bean&Leaf is a mobile application designed to enable users to track their coffee and tea consumptions, giving ratings for those consumptions and viewing them in an interactive interface.
 
-## Get started
+## Prerequisites
 
-1. Install dependencies
+Before you start, make sure you have the following installed:
+
+- **Node.js**: [Download and install Node.js](https://nodejs.org/)
+- **NPM**: Comes with Node.js, used for managing project dependencies.
+- **Git**: [Download and install Git](https://git-scm.com/)
+
+## Environment Setup
+
+1. **Clone the Repository**
+
+   Clone the project repository to your local machine using Git:
+
+   ```bash
+   git clone https://github.com/your-username/Bean-Leaf.git
+   cd Bean-Leaf
+   ```
+
+2. **Install Dependencies**
+
+   Navigate to the project directory and install the required Node.js packages:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Create an environemnt file**
+   Create a `.env` file in the root directory of the project and add the following environment variables:
 
-   ```bash
-    npx expo start
+   ```env
+   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
-In the output, you'll find options to open the app in a
+   Replace `your_supabase_url` and `your_supabase_anon_key` with your actual Client ID, API keys and URL.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   You can get these details from the following websites:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   - **Supabase**: Sign up at [Supabase](https://supabase.com/dashboard/sign-in?returnTo=%2Fprojects) and go to the API section of your project to obtain your URL and Anon key.
 
-## Get a fresh project
+## Running the project
 
-When you're ready, run:
+- Enter the following command in a new terminal window:
 
-```bash
-npm run reset-project
+```
+npm expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+- Open the project using expo go app or using a simulator.
 
-## Learn more
+## Features
 
-To learn more about developing your project with Expo, look at the following resources:
+### 1. Interactive map
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- View coffee and tea locations that you and your friends visited on a map
+- Location can be easily viewed from the map
 
-## Join the community
+### 2. Social network
 
-Join our community of developers creating universal apps.
+- Add friends to share locations visited with all your friends
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Future Enhancements
+
+### 1. Recommendations
+
+- Show recommendations for users based on location and preferences
+
+### 2. Add friend groups
+
+- Allow forming friend groups so users can choose to share locations selectively
+
+### 3. Leaderboard
+
+- Rank users according to the number of likes they receive on the review published in the global database
