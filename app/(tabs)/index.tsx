@@ -18,6 +18,8 @@ type Location = {
   rating: number;
   drink_type: string;
   user_email: string;
+  location_latitude: number;
+  location_longitude: number;
 };
 
 export default function Explore() {
@@ -77,6 +79,18 @@ export default function Explore() {
     }
   };
 
+  const handleCardPress = (latitude: number, longitude: number) => {
+    // Navigate to map tab with location data
+    router.push({
+      pathname: "/(tabs)/addict",
+      params: {
+        latitude,
+        longitude,
+        zoom: 15,
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -98,27 +112,37 @@ export default function Explore() {
         }
       >
         {locations.map((location) => (
-          <View key={location.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <ThemedText style={styles.locationName}>
-                {location.location_name}
-              </ThemedText>
-              <View style={styles.ratingContainer}>
-                <ThemedText style={styles.rating}>
-                  ★ {location.rating}
+          <TouchableOpacity
+            key={location.id}
+            onPress={() =>
+              handleCardPress(
+                location.location_latitude,
+                location.location_longitude
+              )
+            }
+          >
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <ThemedText style={styles.locationName}>
+                  {location.location_name}
                 </ThemedText>
-                <ThemedText style={styles.drinkType}>
-                  {location.drink_type}
-                </ThemedText>
+                <View style={styles.ratingContainer}>
+                  <ThemedText style={styles.rating}>
+                    ★ {location.rating}
+                  </ThemedText>
+                  <ThemedText style={styles.drinkType}>
+                    {location.drink_type}
+                  </ThemedText>
+                </View>
               </View>
+              <ThemedText style={styles.description}>
+                {location.description}
+              </ThemedText>
+              <ThemedText style={styles.userEmail}>
+                by {location.user_email}
+              </ThemedText>
             </View>
-            <ThemedText style={styles.description}>
-              {location.description}
-            </ThemedText>
-            <ThemedText style={styles.userEmail}>
-              by {location.user_email}
-            </ThemedText>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>

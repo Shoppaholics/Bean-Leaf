@@ -19,6 +19,7 @@ import icon from "../../assets/images/star.png";
 import listIcon from "../../assets/icons/list.png";
 import * as ImagePicker from "expo-image-picker";
 import { supabase } from "@/lib/supabase";
+import { useLocalSearchParams } from "expo-router";
 
 import SavedLocations from "@/components/my-locations/SavedLocations";
 import { fetchFriendsFavourites } from "../(api)/userServices";
@@ -60,6 +61,8 @@ const Addict = () => {
     SavedLocationWithEmail[]
   >([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const params = useLocalSearchParams();
 
   const fetchCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -301,6 +304,23 @@ const Addict = () => {
     retrievePins();
   }, [userId]);
 
+  useEffect(() => {
+    if (params.zoom && params.latitude && params.longitude) {
+      // Add a small delay to ensure map is ready
+      setTimeout(() => {
+        mapRef?.animateToRegion(
+          {
+            latitude: Number(params.latitude),
+            longitude: Number(params.longitude),
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          },
+          1000
+        ); // Add animation duration
+      }, 100);
+    }
+  }, [params, mapRef]); // Add mapRef to dependencies
+
   const focusMapOnLocation = (latitude: number, longitude: number) => {
     setShowListView(false);
     setCurrentLocation({ latitude: latitude, longitude: longitude });
@@ -320,6 +340,20 @@ const Addict = () => {
           longitudeDelta: 0.01,
         }}
         showsUserLocation
+        onMapReady={() => {
+          // Handle initial navigation params when map is ready
+          if (params.zoom && params.latitude && params.longitude) {
+            mapRef?.animateToRegion(
+              {
+                latitude: Number(params.latitude),
+                longitude: Number(params.longitude),
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              },
+              1000
+            );
+          }
+        }}
       >
         {pins.map((pin) => (
           <Marker
